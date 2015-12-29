@@ -207,12 +207,12 @@ def iterationValeurDeterministe(g,  gamma ):
     QH =np.zeros((nbcolonnes,nblignes))
     Q = [QR,QT,QY,QU,QF,QG,QJ,QH]
     epsilon = 1
-    t =0
+    iteration =0
     maxdiff = -10000
-    while ( abs ( maxdiff) > epsilon or t ==0 ) :
+    while ( abs ( maxdiff) > epsilon or iteration ==0 ) :
         
         maxdiff = 0
-        t+= 1;
+        iteration+= 1;
         oldV0 =np.copy( V0)
         for j in range (nbcolonnes):
             for i in range (nblignes):  
@@ -256,7 +256,7 @@ def iterationValeurDeterministe(g,  gamma ):
             if ( V0[j][i] == Q[7][j][i]):
                 sol [j][i] = strDirections[7]
      
-    return sol
+    return sol, iteration
 
 
 
@@ -312,10 +312,10 @@ def iterationValeurNonDeterministe(g,  gamma ):
     QH =np.zeros((nbcolonnes,nblignes))
     Q = [QR,QT,QY,QU,QF,QG,QJ,QH]
     epsilon = 0.1
-  
+    iteration = 0
     maxdiff = -10000
     while ( abs ( maxdiff) > epsilon or t ==0 ) :
-        
+        iteration +=1
         maxdiff = 0
       
         oldV0 =np.copy( V0)
@@ -363,7 +363,7 @@ def iterationValeurNonDeterministe(g,  gamma ):
             if ( V0[j][i] == Q[7][j][i]):
                 sol [j][i] = strDirections[7]
      
-    return sol
+    return sol, iteration
 
 
 def afficherSol (g,sol):
@@ -418,7 +418,7 @@ def testNonDeterministe(tailleDebut,tailleFin,nbiteration) :
             
             g= np.zeros((taille,taille), dtype=numpy.int)
             timer = float (time.time() )
-            iterationValeurDeterministe(g, 0.9)
+            iterationValeurNonDeterministe(g, 0.9)
             tabIteration[i] = time.time() - timer
         tabResultMoy[taille - tailleDebut] = np.average(tabIteration)
         tabResultVar[taille - tailleDebut] = np.var(tabIteration)
@@ -437,12 +437,55 @@ def testNonDeterministeGamma(gammaDebut,gammaFin,nbiteration) :
         for i in range (nbiteration):    
             g= np.zeros((taille,taille), dtype=numpy.int)
             timer = float (time.time() )
-            iterationValeurDeterministe(g, gamma   )
+            iterationValeurNonDeterministe(g, gamma   )
             tabIteration[i] = time.time() - timer
         tabResultMoy[gamma - gammaDebut] = np.average(tabIteration)
         tabResultVar[gamma - gammaDebut] = np.var(tabIteration)
         print str( 1.00 *(gamma -gammaDebut) /(gammaFin -gammaDebut) *100) + " %" 
     return xResult,tabResultMoy,tabResultVar
+    
+    
+def testNonDeterministeTabTemps(tailleDebut,tailleFin,nbiteration) :
+    global nbcolonnes, nblignes, g
+    tabIteration = np.zeros (((tailleFin -tailleDebut) /5 +1,nbiteration))
+    xResult = []
+    i = tailleDebut -5
+    while i < tailleFin :
+        i += 5
+        xResult.append(i)
+    print xResult    
+    for taille in xResult:
+        nblignes=taille
+        nbcolonnes=taille
+        print taille
+        for i in range (nbiteration):
+            g= np.zeros((taille,taille), dtype=numpy.int)
+            timer = float (time.time() )
+            iterationValeurNonDeterministe(g, 0.9)
+            tabIteration[(taille-tailleDebut)/5][i] = time.time() - timer
+        print str( 1.00 *(taille -tailleDebut) /(tailleFin -tailleDebut) *100) + " %" 
+    return tabIteration
+    
+def testNonDeterministeTabnbIt(tailleDebut,tailleFin,nbiteration) :
+    global nbcolonnes, nblignes, g
+    tabIteration = np.zeros (((tailleFin -tailleDebut) /5 +1,nbiteration))
+    xResult = []
+    i = tailleDebut -5
+    while i < tailleFin :
+        i += 5
+        xResult.append(i)
+    print xResult    
+    for taille in xResult:
+        nblignes=taille
+        nbcolonnes=taille
+        print taille
+        for i in range (nbiteration):
+            g= np.zeros((taille,taille), dtype=numpy.int)
+            timer = float (time.time() )
+            sol , it = iterationValeurNonDeterministe(g, 0.9)
+            tabIteration[(taille-tailleDebut)/5][i] = it
+        print str( 1.00 *(taille -tailleDebut) /(tailleFin -tailleDebut) *100) + " %" 
+    return tabIteration
 
 def ploter(x , ymoy , yvar):
     taille = len(x)
@@ -464,18 +507,18 @@ def ploter(x , ymoy , yvar):
 #                            VARIABLES
 #
 ################################################################################
-
+timer = time.time()
 
 Mafenetre = Tk()
 Mafenetre.title('MDP')
 
-zoom=2
+zoom=1
 
 alea = 0 #transitions aleatoires si alea =1 sinon mettre alea=0
 
 #taille de la grille
-nblignes=6
-nbcolonnes=6
+nblignes=30
+nbcolonnes=30
  
 globalcost=0
 
@@ -537,65 +580,77 @@ directionsValue = [dirR,dirT,dirY,dirU,dirF,dirG,dirJ,dirH]
 ################################################################################
 
 
-#tailleDebut=10
-#tailleFin =30
-#nbiteration = 10
+tailleDebut=10
+tailleFin =30
+nbiteration = 10
+
+#val= testNonDeterministeTabTemps(tailleDebut,tailleFin,nbiteration)
 #
-#x, ymoy,yvar = testDeterministe(tailleDebut,tailleFin,nbiteration)
-#print ymoy
-#print yvar
-#ploter (x,ymoy,yvar)
+#for i in range (len(val)):
+#    print  "\hline"
+#    string = ""
+#    for j in range (len(val[0])):
+#        string += str(val[i][j]) +" & "
+#    print string
+        
+
+x, ymoy,yvar = testNonDeterministe(tailleDebut,tailleFin,nbiteration)
+print ymoy
+print yvar
+ploter (x,ymoy,yvar)
 
 
-################################################################################
+#################################################################################
+##
+##                            GRAPHIQUES
+##
+#################################################################################
 #
-#                            GRAPHIQUES
 #
-################################################################################
-
-
-
-# ecriture du quadrillage et coloration
-Canevas = Canvas(Mafenetre, width = Largeur, height =Hauteur, bg =mywhite)
-for i in range(nblignes+1):
-    ni=zoom*20*i+20
-    Canevas.create_line(20, ni, Largeur-20,ni)
-for j in range(nbcolonnes+1):
-    nj=zoom*20*j+20
-    Canevas.create_line(nj, 20, nj, Hauteur-20)
-colordraw(g,nblignes,nbcolonnes)
-
- 
-Canevas.focus_set()
-Canevas.bind('<Key>',Clavier)
-Canevas.pack(padx =5, pady =5)
-
-PosX = 20+10*zoom
-PosY = 20+10*zoom
-
-# Creation d'un widget Button (bouton Quitter)
-Button(Mafenetre, text ='Restart', command = initialize).pack(side=LEFT,padx=5,pady=5)
-Button(Mafenetre, text ='Quit', command = Mafenetre.destroy).pack(side=LEFT,padx=5,pady=5)
-
-w = Label(Mafenetre, text='Cost = '+str(globalcost),fg=myblack,font = "Verdana 14 bold")
-w.pack() 
-
-Pion = Canevas.create_oval(PosX-10,PosY-10,PosX+10,PosY+10,width=2,outline='black',fill=myyellow)
-
-initialize()
-
-####################################
 #
-#         test
+## ecriture du quadrillage et coloration
+#Canevas = Canvas(Mafenetre, width = Largeur, height =Hauteur, bg =mywhite)
+#for i in range(nblignes+1):
+#    ni=zoom*20*i+20
+#    Canevas.create_line(20, ni, Largeur-20,ni)
+#for j in range(nbcolonnes+1):
+#    nj=zoom*20*j+20
+#    Canevas.create_line(nj, 20, nj, Hauteur-20)
+#colordraw(g,nblignes,nbcolonnes)
+#
+# 
+#Canevas.focus_set()
+#Canevas.bind('<Key>',Clavier)
+#Canevas.pack(padx =5, pady =5)
+#
+#PosX = 20+10*zoom
+#PosY = 20+10*zoom
+#
+## Creation d'un widget Button (bouton Quitter)
+#Button(Mafenetre, text ='Restart', command = initialize).pack(side=LEFT,padx=5,pady=5)
+#Button(Mafenetre, text ='Quit', command = Mafenetre.destroy).pack(side=LEFT,padx=5,pady=5)
+#
+#w = Label(Mafenetre, text='Cost = '+str(globalcost),fg=myblack,font = "Verdana 14 bold")
+#w.pack() 
+#
+#Pion = Canevas.create_oval(PosX-10,PosY-10,PosX+10,PosY+10,width=2,outline='black',fill=myyellow)
+#
+#initialize()
 #
 #####################################
-
-sol = iterationValeurNonDeterministe(g, 0.9 )
-
-print sol
-
-afficherSol (g,sol)
-
-
-Mafenetre.mainloop()
+##
+##         exercice
+##
+######################################
+#
+#sol = iterationValeurNonDeterministe(g, 0.9 )
+#
+#print sol
+#
+#afficherSol (g,sol)
+#
+#
+#print time.time () - timer
+#
+#Mafenetre.mainloop()
 
