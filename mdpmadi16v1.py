@@ -228,7 +228,7 @@ def iterationValeurDeterministe(g,  gamma ):
                         sumTV += 1  * oldV0[lprime][kprime] 
                     else :
                         sumTV += -10000
-                    Q[direction][j][i]= -1  +  gamma * sumTV
+                    Q[direction][j][i]= weight[g[j][i]]  +  gamma * sumTV
                 V0[j][i] = max (Q[0][j][i],Q[1][j][i],Q[2][j][i],Q[3][j][i],Q[4][j][i],Q[5][j][i],Q[6][j][i],Q[7][j][i])
                 if (i == nblignes -1 and  j == nbcolonnes -1 ) :
                     V0[j][i] =  vbut   
@@ -335,7 +335,7 @@ def iterationValeurNonDeterministe(g,  gamma ):
                             sumTV += trans[t]  * oldV0[t[0]][t[1]] 
                     else :
                         sumTV += -10000
-                    Q[direction][j][i]= -1  +  gamma * sumTV
+                    Q[direction][j][i]= weight[g[j][i]]  +  gamma * sumTV
                 V0[j][i] = max (Q[0][j][i],Q[1][j][i],Q[2][j][i],Q[3][j][i],Q[4][j][i],Q[5][j][i],Q[6][j][i],Q[7][j][i])
                 if (i == nblignes -1 and  j == nbcolonnes -1 ) :
                     V0[j][i] =  vbut   
@@ -365,6 +365,18 @@ def iterationValeurNonDeterministe(g,  gamma ):
      
     return sol
 
+
+def afficherSol (g,sol):
+    ecart = 3
+    saveLine=[]
+    for i in range (nblignes):
+        for j in range (nbcolonnes):
+            if not(i == nblignes-1 and  j == nbcolonnes-1) and g[j,i] != -1:
+                taille = zoom/2 
+                PosY = j *20*zoom +20+zoom*10
+                PosX = i *20*zoom +20+zoom*10
+                saveLine.append(Canevas.create_text(PosX+ecart*zoom,PosY+ecart*zoom,text=sol[j][i],fill=myblack,font = "Verdana "+str(int(10*zoom/3))+" bold"))
+                
 
 ################################################################################
 #
@@ -475,11 +487,11 @@ Hauteur = zoom*20*nblignes+40
 g= np.zeros((nblignes,nbcolonnes), dtype=numpy.int)
 cost= np.zeros(5, dtype=numpy.int)
 weight= np.zeros(5, dtype=numpy.int)
-weight[0] = 1
-weight[1] = 10
-weight[2] = 20
-weight[3] = 30
-weight[4] = 40
+weight[0] = -1
+weight[1] = -10
+weight[2] = -20
+weight[3] = -30
+weight[4] = -40
 
 # def des couleurs
 myred="#D20B18"
@@ -525,14 +537,14 @@ directionsValue = [dirR,dirT,dirY,dirU,dirF,dirG,dirJ,dirH]
 ################################################################################
 
 
-tailleDebut=10
-tailleFin =30
-nbiteration = 10
-
-x, ymoy,yvar = testDeterministe(tailleDebut,tailleFin,nbiteration)
-print ymoy
-print yvar
-ploter (x,ymoy,yvar)
+#tailleDebut=10
+#tailleFin =30
+#nbiteration = 10
+#
+#x, ymoy,yvar = testDeterministe(tailleDebut,tailleFin,nbiteration)
+#print ymoy
+#print yvar
+#ploter (x,ymoy,yvar)
 
 
 ################################################################################
@@ -543,47 +555,47 @@ ploter (x,ymoy,yvar)
 
 
 
-## ecriture du quadrillage et coloration
-#Canevas = Canvas(Mafenetre, width = Largeur, height =Hauteur, bg =mywhite)
-#for i in range(nblignes+1):
-#    ni=zoom*20*i+20
-#    Canevas.create_line(20, ni, Largeur-20,ni)
-#for j in range(nbcolonnes+1):
-#    nj=zoom*20*j+20
-#    Canevas.create_line(nj, 20, nj, Hauteur-20)
-#colordraw(g,nblignes,nbcolonnes)
+# ecriture du quadrillage et coloration
+Canevas = Canvas(Mafenetre, width = Largeur, height =Hauteur, bg =mywhite)
+for i in range(nblignes+1):
+    ni=zoom*20*i+20
+    Canevas.create_line(20, ni, Largeur-20,ni)
+for j in range(nbcolonnes+1):
+    nj=zoom*20*j+20
+    Canevas.create_line(nj, 20, nj, Hauteur-20)
+colordraw(g,nblignes,nbcolonnes)
+
+ 
+Canevas.focus_set()
+Canevas.bind('<Key>',Clavier)
+Canevas.pack(padx =5, pady =5)
+
+PosX = 20+10*zoom
+PosY = 20+10*zoom
+
+# Creation d'un widget Button (bouton Quitter)
+Button(Mafenetre, text ='Restart', command = initialize).pack(side=LEFT,padx=5,pady=5)
+Button(Mafenetre, text ='Quit', command = Mafenetre.destroy).pack(side=LEFT,padx=5,pady=5)
+
+w = Label(Mafenetre, text='Cost = '+str(globalcost),fg=myblack,font = "Verdana 14 bold")
+w.pack() 
+
+Pion = Canevas.create_oval(PosX-10,PosY-10,PosX+10,PosY+10,width=2,outline='black',fill=myyellow)
+
+initialize()
+
+####################################
 #
-# 
-#Canevas.focus_set()
-#Canevas.bind('<Key>',Clavier)
-#Canevas.pack(padx =5, pady =5)
-#
-#PosX = 20+10*zoom
-#PosY = 20+10*zoom
-#
-## Creation d'un widget Button (bouton Quitter)
-#Button(Mafenetre, text ='Restart', command = initialize).pack(side=LEFT,padx=5,pady=5)
-#Button(Mafenetre, text ='Quit', command = Mafenetre.destroy).pack(side=LEFT,padx=5,pady=5)
-#
-#w = Label(Mafenetre, text='Cost = '+str(globalcost),fg=myblack,font = "Verdana 14 bold")
-#w.pack() 
-#
-#Pion = Canevas.create_oval(PosX-10,PosY-10,PosX+10,PosY+10,width=2,outline='black',fill=myyellow)
-#
-#initialize()
+#         test
 #
 #####################################
-##
-##         test
-##
-######################################
-#
-#sol = iterationValeurNonDeterministe(g, 0.9 )
-#
-#print sol
-#
-#
-#
-#
-#Mafenetre.mainloop()
+
+sol = iterationValeurNonDeterministe(g, 0.9 )
+
+print sol
+
+afficherSol (g,sol)
+
+
+Mafenetre.mainloop()
 
